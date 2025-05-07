@@ -1,0 +1,11 @@
+matplotlib==3.9.4
+numpy==1.26.4
+openai==1.65.3
+pandas==2.2.3
+pyttsx3==2.98
+scikit_learn==1.6.0
+scipy==1.13.1
+torch==2.5.1
+ultralytics==8.3.40
+websockets==15.0.1
+aiohttp==3.9.3

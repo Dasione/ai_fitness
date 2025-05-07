@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        - VITE_API_BASE_URL=http://localhost:3000
+    ports:
+      - "81:80"
+    env_file:
+      - .env
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3000
+      - NODE_ENV=production
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=IAMCaesar9
+      - DB_NAME=video_platform
+      - JWT_SECRET=K8xmP9\$\$vL2\@nQ5\&\&jR7\*hT4\!wY3
+      - LOG_LEVEL=debug
+    volumes:
+      - ./public/uploads:/app/public/uploads
+      - ./logs/backend:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.processor
+    ports:
+      - "8765:8765"
+      - "8766:8766"
+    volumes:
+      - ./public/uploads:/app/public/uploads
+      - ./runs:/app/runs
+      - ./logs/processor:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=debug
+    networks:
+      - app-network
+
+  db:
+    image: mysql:9.0
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=2414578253
+      - MYSQL_DATABASE=video_platform
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data: 
